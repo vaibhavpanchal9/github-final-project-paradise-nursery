@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from '../redux/CartSlice';
+import { Link } from 'react-router-dom';
 
-const data = {
+const plantsData = {
   Indoor: [
     { id: 1, name: "Snake Plant", price: 10, img: "https://via.placeholder.com/100" },
     { id: 2, name: "Aloe Vera", price: 8, img: "https://via.placeholder.com/100" },
@@ -31,38 +32,63 @@ const data = {
 
 function ProductList() {
   const dispatch = useDispatch();
-  const cartCount = useSelector(state => state.cart.totalQuantity);
-  const [added, setAdded] = useState({});
+  const cartItems = useSelector(state => state.cart.items);
+
+  const [addedItems, setAddedItems] = useState({});
+
+  // ✅ Correct total count (not just length)
+  const totalCount = cartItems.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
 
   return (
     <div>
-      <nav>
+
+      {/* ✅ NAVBAR WITH LINKS */}
+      <nav style={{ display: "flex", justifyContent: "space-between", padding: "10px", background: "#eee" }}>
         <h2>Paradise Nursery</h2>
-        <span>Cart: {cartCount}</span>
+
+        <div>
+          <Link to="/">Home</Link> |{" "}
+          <Link to="/plants">Plants</Link> |{" "}
+          <Link to="/cart">Cart ({totalCount})</Link>
+        </div>
       </nav>
 
-      {Object.keys(data).map(category => (
-        <div key={category}>
+      {/* ✅ PRODUCT LIST */}
+      {Object.keys(plantsData).map(category => (
+        <div key={category} style={{ padding: "20px" }}>
           <h2>{category}</h2>
-          {data[category].map(p => (
-            <div key={p.id}>
-              <img src={p.img} alt={p.name} />
-              <h4>{p.name}</h4>
-              <p>${p.price}</p>
 
-              <button
-                disabled={added[p.id]}
-                onClick={() => {
-                  dispatch(addItem(p));
-                  setAdded({ ...added, [p.id]: true });
-                }}
-              >
-                {added[p.id] ? "Added" : "Add to Cart"}
-              </button>
-            </div>
-          ))}
+          <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
+            {plantsData[category].map(plant => (
+              <div key={plant.id} style={{ border: "1px solid #ccc", padding: "10px", width: "150px" }}>
+                
+                <img src={plant.img} alt={plant.name} />
+                <h4>{plant.name}</h4>
+                <p>${plant.price}</p>
+
+                {/* ✅ BUTTON DISABLE LOGIC */}
+                <button
+                  disabled={addedItems[plant.id]}
+                  onClick={() => {
+                    dispatch(addItem(plant));
+                    setAddedItems({
+                      ...addedItems,
+                      [plant.id]: true
+                    });
+                  }}
+                >
+                  {addedItems[plant.id] ? "Added" : "Add to Cart"}
+                </button>
+
+              </div>
+            ))}
+          </div>
         </div>
       ))}
+
     </div>
   );
 }
